@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  stock-service:
+    build: .
+    ports:
+      - "8001:8001"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_API_URL=${GEMINI_API_URL}
+      - NACOS_SERVER_ADDRESS=${NACOS_SERVER_ADDRESS}
+    volumes:
+      - .:/app
+    restart: unless-stopped
