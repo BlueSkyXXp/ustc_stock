@@ -3,7 +3,7 @@ import uvicorn  # 导入 uvicorn 用于运行 ASGI 应用
 import asyncio  # 异步编程库
 from app.nacos_client import register_service, send_heartbeat, watch_config  # 从 app.nacos_client 模块导入注册服务、发送心跳和监听配置的函数
 from app.api.routes import router  # 从 app.routes 模块导入路由
-import app.settings as settings  # 导入 app.settings 模块，并重命名为 settings
+import app.settings as settings  # 从 app.settings 模块导入配置
 
 # 创建 FastAPI 应用
 app = FastAPI()
@@ -24,4 +24,4 @@ async def startup_event():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=settings.SERVICE_PORT)  # 运行应用，监听指定端口
+    uvicorn.run(app, host="0.0.0.0", port=settings.Settings.SERVICE_PORT)  # 运行应用，监听指定端口

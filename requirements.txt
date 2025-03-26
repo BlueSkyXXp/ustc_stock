@@ -42,7 +42,7 @@ mini-racer==0.12.4
 multidict==6.2.0
 nacos-sdk-python==2.0.3
 nest-asyncio==1.6.0
-numpy==2.2.4
+numpy==2.0.0
 openpyxl==3.1.5
 pandas==2.2.3
 propcache==0.3.0
