@@ -35,6 +35,11 @@ class Settings:
     DB_PASSWORD = "123456"
     DB_NAME = "stock"
 
+    # 定时任务
+    SCHEDULE_HOUR_JOB = "basic_data_daily_job.main"
+    SCHEDULE_NIGHT_JOB = "basic_data_in_night_job.main"
+    SCHEDULE_MINUTE_JOB = "basic_data_minute_job.main"
+
     def __init__(self):
         """
         初始化配置

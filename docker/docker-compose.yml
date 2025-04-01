@@ -2,7 +2,10 @@ version: '3.8'
 
 services:
   stock-service:
-    build: .
+    container_name: ruoyi-stock
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
     ports:
       - "8001:8001"
     environment:
@@ -12,3 +15,8 @@ services:
     volumes:
       - .:/app
     restart: unless-stopped
+    networks:
+      - docker_ruoyi-network
+networks:
+  docker_ruoyi-network:
+    external: true

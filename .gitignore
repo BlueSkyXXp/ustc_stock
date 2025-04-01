@@ -1,1 +1,7 @@
+.idea
 .venv
+nacos-data
+app/nacos-data
+stock.log
+app/log
+log
