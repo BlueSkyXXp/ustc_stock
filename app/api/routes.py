@@ -16,6 +16,7 @@ from app.lib.database import engine
 import app.lib.tablestructure as tbs
 import app.lib.run_template as runt
 import app.lib.trade_time as trd
+import app.core.stock as StockService
 
 # 创建路由
 # 创建一个API路由对象
@@ -41,48 +42,23 @@ def analyze(stock_code: str):
     loggings.info(f"Received stock code: {stock_code}")
     return analyzer.analyze_stock(stock_code)
 
-@router.post('/api/consecutive_limit_up')
-def get_consecutive_limit_up(time_range: TimeRange):
+@router.get('/api/consecutive_limit_up')
+def get_consecutive_limit_up(start_time: str, end_time: str):
+    loggings.info(f"action: get_consecutive_limit_up, Received start_time: {start_time}, end_time: {end_time}")
+    # 临时创建 TimeRange 实例
+    time_range = TimeRange(StartTime=start_time, EndTime=end_time)
     end_time = validate_time_range(time_range)
 
-    if end_time.date() == datetime.now().date():
-        if is_tradetime(datetime.now()):
-            today_zt_pool_df = ak.stock_zt_pool_em()
-            max_zt_num = today_zt_pool_df['连板数'].max()
-            max_zt_num_row = today_zt_pool_df[today_zt_pool_df['连板数'] == max_zt_num]
-            max_zt_num_row_db_df = max_zt_num_row.rename(columns=tbs.TABLE_STOCK_ZT_POOL['header_mapping'])
-            max_zt_num_row_db_df.drop(columns=tbs.TABLE_STOCK_ZT_POOL['drop_fields'], inplace=True)
-            max_zt_num_row_db_df.insert(0, 'date', datetime.datetime.today().date())
-
-            query = f"""
-            SELECT si.* 
-            FROM `{tbs.TABLE_STOCK_ZT_POOL['name']}` si
-            JOIN (
-                SELECT date, MAX(ConsecutiveBoardCount) AS max_boards 
-                FROM `{tbs.TABLE_STOCK_ZT_POOL['name']}` 
-                GROUP BY date
-            ) sub
-            ON si.date = sub.date AND si.ConsecutiveBoardCount = sub.max_boards
-            WHERE si.date >= %s AND si.date < %s
-            """
-            # 使用参数化查询
-            stock_df = pd.read_sql(query, engine(), params=(time_range.StartTime, time_range.EndTime))
-
-            stock_df = pd.concat([stock_df, max_zt_num_row_db_df], ignore_index=True)
-
-            return {
-                "StockConsecutiveLimitUp": stock_df.to_dict(orient='records')
-            }
 
     query = f"""
                 SELECT si.* 
                 FROM `{tbs.TABLE_STOCK_ZT_POOL['name']}` si
                 JOIN (
-                    SELECT date, MAX(ConsecutiveBoardCount) AS max_boards 
+                    SELECT date, MAX(consecutive_board_count) AS max_boards 
                     FROM `{tbs.TABLE_STOCK_ZT_POOL['name']}` 
                     GROUP BY date
                 ) sub
-                ON si.date = sub.date AND si.ConsecutiveBoardCount = sub.max_boards
+                ON si.date = sub.date AND si.consecutive_board_count = sub.max_boards
                 WHERE si.date >= %s AND si.date <= %s
                 """
     # 使用参数化查询
@@ -157,6 +133,13 @@ def get_stock_board_industry_data(time: str):
         "StockBoardIndustryData": resp_json
     }
 
+@router.get('/api/market_activity_trend_data')
+def get_market_activity_trend_data():
+    result = StockService.get_daily_stock_market_activity()
+    if result is None:
+        raise HTTPException(status_code=500, detail="获取市场活动趋势数据失败")
+    return result
+
 @router.get('/api/execute_job')
 def execute_job(action: str):
     if not action:
@@ -184,3 +167,30 @@ def execute_job(action: str):
     except Exception as e:
         loggings.error(f"Job execution failed: {e}")
         raise HTTPException(status_code=500, detail=f"Job execution failed: {str(e)}")
+
+@router.get('/api/get_stock_market_crowd_data')
+def get_stock_market_crowd_data(start_time: str, end_time: str):
+    # 验证时间格式
+    date_format = r'^\d{4}-\d{2}-\d{2}$'
+    if not re.match(date_format, start_time) or not re.match(date_format, end_time):
+        raise HTTPException(status_code=400, detail=f"时间格式不正确，应为{date_format.replace('^', '').replace('$', '')}")
+    end_date = datetime.strptime(end_time, '%Y-%m-%d')
+    if end_date.date() > datetime.now().date():
+        raise HTTPException(status_code=400, detail="结束时间不能晚于今天")
+
+    # 构建查询语句
+    query = f"""
+        SELECT * 
+        FROM `{tbs.TABLE_MARKET_CROWDING['name']}` 
+        WHERE date >= %s AND date <= %s
+    """
+    # 使用参数化查询
+    try:
+        stock_df = pd.read_sql(query, engine(), params=(start_time, end_time))
+        result = stock_df.to_dict(orient='records')
+        return {
+            "StockMarketCrowdData": result
+        }
+    except Exception as e:
+        loggings.error(f"查询股票市场拥挤度数据失败: {e}")
+        raise HTTPException(status_code=500, detail="查询股票市场拥挤度数据失败")

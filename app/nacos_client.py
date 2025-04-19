@@ -1,5 +1,5 @@
 import json
-import logging
+from app.util.log import loggings
 
 import nacos
 import asyncio
@@ -33,32 +33,38 @@ async def send_heartbeat():
 
 
 def load_config(content):
-    # 加载配置文件，解析yaml格式，设置语言
-    # 解析json格式的配置文件
-    json_config = json.loads(content)
-    logging.info("json_config: %s", json_config)
-
-    if json_config is None:
+    # 检查 content 是否为 None
+    if content is None:
+        loggings.error("配置内容为空，无法解析 JSON")
         return
-    settings.settings.DB_HOST_NAME = json_config.get('DB_HOST_NAME', 'localhost')
+    try:
+        # 加载配置文件，解析 yaml 格式，设置语言
+        # 解析 json 格式的配置文件
+        json_config = json.loads(content)
+        loggings.info("json_config: %s", json_config)
 
-    settings.settings.DB_PORT = json_config.get('DB_PORT', 3306)
-    settings.settings.DB_USERNAME = json_config.get('DB_USERNAME', 'root')
-    settings.settings.DB_PASSWORD = json_config.get('DB_PASSWORD', '123456')
-    settings.settings.DB_DATABASE = json_config.get('DB_DATABASE', 'stock')
-    logging.info("DB_HOST_NAME: %s", settings.settings.DB_HOST_NAME)
-    logging.info("DB_PORT: %s", settings.settings.DB_PORT)
-    logging.info("DB_USERNAME: %s", settings.settings.DB_USERNAME)
-    logging.info("DB_PASSWORD: %s", settings.settings.DB_PASSWORD)
-    logging.info("DB_DATABASE: %s", settings.settings.DB_DATABASE)
-    # 解析yaml格式的配置文件
-    # yaml_config = yaml.full_load(content)
-    # print("yaml_config:", yaml_config)
+        if json_config is None:
+            return
+        settings.settings.DB_HOST_NAME = json_config.get('DB_HOST_NAME', '172.25.0.3')
+        settings.settings.DB_PORT = json_config.get('DB_PORT', 3306)
+        settings.settings.DB_USERNAME = json_config.get('DB_USERNAME', 'root')
+        settings.settings.DB_PASSWORD = json_config.get('DB_PASSWORD', 'VHdm%A@kh')
+        settings.settings.DB_DATABASE = json_config.get('DB_DATABASE', 'stock')
+        loggings.info("DB_HOST_NAME: %s", settings.settings.DB_HOST_NAME)
+        loggings.info("DB_PORT: %s", settings.settings.DB_PORT)
+        loggings.info("DB_USERNAME: %s", settings.settings.DB_USERNAME)
+        loggings.info("DB_PASSWORD: %s", settings.settings.DB_PASSWORD)
+        loggings.info("DB_DATABASE: %s", settings.settings.DB_DATABASE)
+    except json.JSONDecodeError as e:
+        loggings.error("解析 JSON 配置时出错: %s", e)
 
 
 def nacos_config_callback(args):
-    # Nacos配置回调函数，处理配置更新
-    content = args['raw_content']
+    # Nacos 配置回调函数，处理配置更新
+    content = args.get('raw_content')
+    if content is None:
+        loggings.error("Nacos 配置回调接收到的内容为空")
+        return
     load_config(content)
 
 
@@ -66,8 +72,11 @@ def watch_config():
     # 启动时，强制同步一次配置
     config = client.get_config(settings.settings.NACOS_DATA_ID,
                                settings.settings.NACOS_GROUP_NAME)
-    print("config:", config)
-    load_config(config)
+    if config is None:
+        loggings.error("未能从 Nacos 获取配置")
+    else:
+        print("config:", config)
+        load_config(config)
     # 启动监听器，监控配置变化
     client.add_config_watcher(settings.settings.NACOS_DATA_ID,
                               settings.settings.NACOS_GROUP_NAME, nacos_config_callback)

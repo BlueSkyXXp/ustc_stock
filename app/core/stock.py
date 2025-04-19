@@ -1,7 +1,9 @@
 from io import StringIO
 
+import aiohttp
 import pandas as pd
 import requests
+import asyncio
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -34,3 +36,217 @@ def get_daily_stock_market_activity():
         print(f"JSON 解析错误: {json_err}")
     return None
 
+
+
+async def _async_get_top_5_stock():
+    url = 'https://push2.eastmoney.com/api/qt/clist/get'
+    params = {
+        'np': '1',
+        'fltt': '1',
+        'invt': '2',
+        'fs': 'm:0 t:6,m:0 t:80,m:1 t:2,m:1 t:23,m:0 t:81 s:2048',
+        'fields': 'f12,f13,f14,f1,f2,f4,f3,f152,f5,f6,f7,f15,f18,f16,f17,f10,f8,f9,f23',
+        'fid': 'f6',
+        'pn': '1',
+        'pz': '100',
+        'po': '1',
+        'dect': '1',
+        'ut': 'fa5fd1943c7b386f172d6893dbfba10b',
+        'wbp2u': '|0|0|0|web',
+        '_': '1745046448296'
+    }
+    result = await fetch_5_percent_top_async(url, params)
+    return process_data(result)
+
+async def fetch_5_percent_top_async(url: str, base_params: dict[str, str]) -> list[dict[str, str]]:
+    first_page_params = base_params.copy()
+    first_page_params["pn"] = "1"
+    async with aiohttp.ClientSession() as session:
+        first_page_data = await fetch_single_page(session, url, first_page_params)
+        if first_page_data.get("rc") != 0 or not first_page_data.get("data"):
+            return [first_page_data]
+
+
+        total_count = first_page_data["data"]["total"]
+        single_page_size = int(first_page_params["pz"]) # 每页大小
+
+            # 计算前5%的股票数量取整数
+        top_5_percent_count = int(total_count * 0.05)
+        # 计算需要的页数
+        total_pages = top_5_percent_count//single_page_size
+        remaining_stocks = top_5_percent_count % single_page_size
+
+        task = []
+        for i in range(2, total_pages+1):
+            params = base_params.copy()
+            params["pn"] = i
+            task.append(fetch_single_page(session, url, params))
+
+
+        results = await asyncio.gather(*task)
+        results.insert(0, first_page_data)
+        if remaining_stocks > 0:
+            params = base_params.copy()
+            params["pn"] = total_pages + 1
+            params["pz"] = remaining_stocks
+            results.append(await fetch_single_page(session, url, params))
+
+        return results
+
+            
+
+def get_top_5_stock():
+    import nest_asyncio
+
+    nest_asyncio.apply()
+    return asyncio.run(_async_get_top_5_stock())
+
+async def fetch_single_page(
+    session: aiohttp.ClientSession, url: str, params: dict[str, str]
+) -> dict[str, str]:
+    """异步获取单页数据"""
+    async with session.get(url, params=params, ssl=False) as response:
+        return await response.json()
+
+def process_data(page_results: list[dict[str,str]]) -> pd.DataFrame:
+    """处理获取到的数据，转换为DataFrame"""
+    all_data = []
+
+    # 保存每个页面的结果和页码
+    page_number = 1
+    items_per_page = 100  # 假设每页100条
+
+    for result in page_results:
+        if result.get("rc") == 0 and result.get("data") and result["data"].get("diff"):
+            page_data = result["data"]["diff"]
+
+            # 添加页面信息以便后续计算序号
+            for item in page_data:
+                item["page_number"] = page_number
+                item["page_index"] = page_data.index(item)
+
+            all_data.extend(page_data)
+            page_number += 1
+
+    if not all_data:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(all_data)
+
+    # 计算正确的序号
+    df["序号"] = df.apply(
+        lambda row: (row["page_number"] - 1) * items_per_page + row["page_index"] + 1,
+        axis=1,
+    )
+
+    # 删除临时列
+    df.drop(columns=["page_number", "page_index"], inplace=True, errors="ignore")
+
+    # 设置列名 - 修正了5分钟涨跌的映射 (f11 是正确的5分钟涨跌字段)
+    column_map = {
+        "f1": "原序号",
+        "f2": "最新价",
+        "f3": "涨跌幅",
+        "f4": "涨跌额",
+        "f5": "成交量",
+        "f6": "成交额",
+        "f7": "振幅",
+        "f8": "换手率",
+        "f9": "市盈率-动态",
+        "f10": "量比",
+        "f11": "5分钟涨跌",
+        "f12": "代码",
+        "f13": "_",
+        "f14": "名称",
+        "f15": "最高",
+        "f16": "最低",
+        "f17": "今开",
+        "f18": "昨收",
+        "f20": "总市值",
+        "f21": "流通市值",
+        "f22": "涨速",
+        "f23": "市净率",
+        "f24": "60日涨跌幅",
+        "f25": "年初至今涨跌幅",
+        "f62": "-",
+        "f115": "-",
+        "f128": "-",
+        "f136": "-",
+        "f152": "-",
+    }
+
+    df.rename(columns=column_map, inplace=True)
+
+    # 选择需要的列并确保所有需要的列都存在
+    desired_columns = [
+        "序号",
+        "代码",
+        "名称",
+        "最新价",
+        "涨跌幅",
+        "涨跌额",
+        "成交量",
+        "成交额",
+        "振幅",
+        "最高",
+        "最低",
+        "今开",
+        "昨收",
+        "量比",
+        "换手率",
+        "市盈率-动态",
+        "市净率",
+        "总市值",
+        "流通市值",
+        "涨速",
+        "5分钟涨跌",
+        "60日涨跌幅",
+        "年初至今涨跌幅",
+    ]
+
+    # 过滤出存在的列
+    available_columns = [col for col in desired_columns if col in df.columns]
+    df = df[available_columns]
+
+    # 转换数值类型
+    numeric_columns = [
+        "最新价",
+        "涨跌幅",
+        "涨跌额",
+        "成交量",
+        "成交额",
+        "振幅",
+        "最高",
+        "最低",
+        "今开",
+        "昨收",
+        "量比",
+        "换手率",
+        "市盈率-动态",
+        "市净率",
+        "总市值",
+        "流通市值",
+        "涨速",
+        "5分钟涨跌",
+        "60日涨跌幅",
+        "年初至今涨跌幅",
+    ]
+
+    for col in numeric_columns:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    # 按涨跌幅降序排序
+    df.sort_values(by="涨跌幅", ascending=False, inplace=True)
+
+    # 重新生成序号
+    df.reset_index(drop=True, inplace=True)
+    df["序号"] = df.index + 1
+
+    return df
+
+
+
+if __name__ == '__main__':
+    data = get_top_5_stock()
+    print(data)

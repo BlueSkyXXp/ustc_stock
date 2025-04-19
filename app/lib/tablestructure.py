@@ -335,6 +335,23 @@ TABLE_STOCK_ZH_A_SPOT = {
     ]
 }
 
+TABLE_MARKET_CROWDING = {
+    'name': 'stock_market_crowding',
+    'cn': '大盘拥挤度数据',
+    'columns': {
+        'date': {'type': DATE, 'cn': '日期', 'size': 0},
+        'top_5_percent_total_volume': {'type': FLOAT, 'cn': '前5%的总成交额(亿元)', 'size': 120},
+        'all_a_shares_total_volume': {'type': FLOAT, 'cn': '全A股总成交额(亿元)', 'size': 120},
+        'crowding_ratio': {'type': FLOAT, 'cn': '拥挤度','size': 120}
+    },
+    'header_mapping': {
+        '日期': 'date',
+        '前5%的总成交额': 'top_5_percent_total_volume',
+        '全A股总成交额': 'all_a_shares_total_volume'
+    },
+    'drop_fields': []
+}
+
 
 def get_field_cn(key, table):
     f = table.get('columns').get(key)

@@ -1,43 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import logging
+from app.util.log import loggings
 import os
 import pymysql
 from sqlalchemy import create_engine
 from sqlalchemy.types import NVARCHAR
 from sqlalchemy import inspect
+from urllib.parse import quote_plus
 
 __author__ = 'bytedance'
 __date__ = '2025/3/31 '
 
-db_host = "10.199.193.253"  # 数据库服务主机
-db_user = "root"  # 数据库访问用户
-db_password = "MyS3ssw0rd"  # 数据库访问密码
-db_database = "stock"  # 数据库名称
-db_port = 3306  # 数据库服务端口
-db_charset = "utf8mb4"  # 数据库字符集
-
-# 使用环境变量获得数据库,docker -e 传递
-_db_host = os.environ.get('db_host')
-if _db_host is not None:
-    db_host = _db_host
-_db_user = os.environ.get('db_user')
-if _db_user is not None:
-    db_user = _db_user
-_db_password = os.environ.get('db_password')
-if _db_password is not None:
-    db_password = _db_password
-_db_database = os.environ.get('db_database')
-if _db_database is not None:
-    db_database = _db_database
-_db_port = os.environ.get('db_port')
-if _db_port is not None:
-    db_port = int(_db_port)
+# 从环境变量获取数据库配置，使用 settings.py 里对应的环境变量名
+db_host = os.getenv("DB_HOST_NAME", "172.25.0.3")
+db_user = os.getenv("DB_USERNAME", "root")
+db_password = quote_plus(os.getenv("DB_PASSWORD", "qwer1234!"))
+db_database = os.getenv("DB_NAME", "stock")
+db_port = int(os.getenv("DB_PORT", 3306))
+db_charset = os.getenv("DB_CHARSET", "utf8mb4")
 
 MYSQL_CONN_URL = "mysql+pymysql://%s:%s@%s:%s/%s?charset=%s" % (
     db_user, db_password, db_host, db_port, db_database, db_charset)
-logging.info(f"数据库链接信息：{ MYSQL_CONN_URL}")
+loggings.info(f"数据库链接信息：{MYSQL_CONN_URL}")
 
 MYSQL_CONN_DBAPI = {'host': db_host, 'user': db_user, 'password': db_password, 'database': db_database,
                     'charset': db_charset, 'port': db_port, 'autocommit': True}
@@ -61,7 +46,7 @@ def get_connection():
     try:
         return pymysql.connect(**MYSQL_CONN_DBAPI)
     except Exception as e:
-        logging.error(f"database.conn_not_cursor处理异常：{MYSQL_CONN_DBAPI}{e}")
+        loggings.error(f"database.conn_not_cursor处理异常：{MYSQL_CONN_DBAPI}{e}")
     return None
 
 
@@ -97,7 +82,7 @@ def insert_other_db_from_df(to_db, data, table_name, cols_type, write_index, pri
             data.to_sql(name=table_name, con=engine_mysql, schema=to_db, if_exists='append',
                         dtype=cols_type, index=write_index, )
     except Exception as e:
-        logging.error(f"database.insert_other_db_from_df处理异常：{table_name}表{e}")
+        loggings.error(f"database.insert_other_db_from_df处理异常：{table_name}表{e}")
 
     # 判断是否存在主键
     if not ipt.get_pk_constraint(table_name)['constrained_columns']:
@@ -110,7 +95,7 @@ def insert_other_db_from_df(to_db, data, table_name, cols_type, write_index, pri
                         for k in indexs:
                             db.execute(f'ALTER TABLE `{table_name}` ADD INDEX IN{k}({indexs[k]});')
         except Exception as e:
-            logging.error(f"database.insert_other_db_from_df处理异常：{table_name}表{e}")
+            loggings.error(f"database.insert_other_db_from_df处理异常：{table_name}表{e}")
 
 
 # 更新数据
@@ -151,7 +136,7 @@ def update_db_from_df(data, table_name, where):
                     sql = f'{sql[:-2]}{sql_where}'
                     db.execute(sql)
             except Exception as e:
-                logging.error(f"database.update_db_from_df处理异常：{sql}{e}")
+                loggings.error(f"database.update_db_from_df处理异常：{sql}{e}")
 
 
 # 检查表是否存在
@@ -175,7 +160,7 @@ def executeSql(sql, params=()):
             try:
                 db.execute(sql, params)
             except Exception as e:
-                logging.error(f"database.executeSql处理异常：{sql}{e}")
+                loggings.error(f"database.executeSql处理异常：{sql}{e}")
 
 
 # 查询数据
@@ -186,7 +171,7 @@ def executeSqlFetch(sql, params=()):
                 db.execute(sql, params)
                 return db.fetchall()
             except Exception as e:
-                logging.error(f"database.executeSqlFetch处理异常：{sql}{e}")
+                loggings.error(f"database.executeSqlFetch处理异常：{sql}{e}")
     return None
 
 
@@ -202,5 +187,5 @@ def executeSqlCount(sql, params=()):
                 else:
                     return 0
             except Exception as e:
-                logging.error(f"database.select_count计算数量处理异常：{e}")
+                loggings.error(f"database.select_count计算数量处理异常：{e}")
     return 0

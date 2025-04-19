@@ -37,8 +37,14 @@ def save_after_close_stock_index_daily_hist(date):
         # sz_index_df 添加两列， 在第二列和第三列分别添加 代码 名称
         sz_index_df.insert(1, 'code', '399001')
         sz_index_df.insert(2, 'name', '深证指数')
+
+        bz_index_df = ak.index_zh_a_hist(symbol="899050", period="daily", start_date=date, end_date=date)
+        # sz_index_df 添加两列， 在第二列和第三列分别添加 代码 名称
+        bz_index_df.insert(1, 'code', '899050')
+        bz_index_df.insert(2, 'name', '北证50')
+
         # 合并两个DataFrame
-        index_zh_a_hist_df = pd.concat([index_zh_a_hist_df, sz_index_df], ignore_index=True)
+        index_zh_a_hist_df = pd.concat([index_zh_a_hist_df, sz_index_df, bz_index_df], ignore_index=True)
 
         hs_300_index_df = ak.index_zh_a_hist(symbol="399300", period="daily", start_date=date, end_date=date)
         # hs_300_index_df 添加两列， 在第二列和第三列分别添加 代码 名称
