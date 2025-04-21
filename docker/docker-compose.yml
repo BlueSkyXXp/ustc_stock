@@ -12,6 +12,11 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_API_URL=${GEMINI_API_URL}
       - NACOS_SERVER_ADDRESS=${NACOS_SERVER_ADDRESS}
+      - DB_HOST_NAME=${DB_HOST_NAME}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
     volumes:
       - .:/app
     restart: unless-stopped

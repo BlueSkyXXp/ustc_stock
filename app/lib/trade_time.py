@@ -48,6 +48,14 @@ OPEN_TIME = (
     (datetime.time(13, 0, 0), datetime.time(15, 0, 0)),
 )
 
+def is_fetch_time(now_time):
+    now = now_time.time()
+    for begin, end in OPEN_TIME:
+        if begin <= now <= end:
+            return True
+    else:
+        return False
+
 
 def is_tradetime(now_time):
     now = now_time.time()

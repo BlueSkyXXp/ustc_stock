@@ -10,6 +10,7 @@ cpath = os.path.abspath(os.path.join(cpath_current, os.pardir))
 sys.path.append(cpath)
 import app.lib.run_template as runt
 import akshare as ak
+import app.core.stock as stock
 import app.lib.tablestructure as tbs
 import app.lib.database as mdb
 import app.lib.trade_time as trd
@@ -28,11 +29,10 @@ def save_nph_stock_board_industry(date, before=True):
     if not trd.is_trade_date(date):
         return
 
-    if not trd.is_tradetime(datetime.datetime.now()):
+    now_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    if not trd.is_fetch_time(now_time):
         return
-    # 涨停池股票列表
     try:
-        now_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
         board_industry_data = ak.stock_board_industry_name_em()
         if board_industry_data is None:
@@ -43,12 +43,15 @@ def save_nph_stock_board_industry(date, before=True):
         total_stock_df = pd.DataFrame()
 
         for index, row in board_industry_data.iterrows():
-            stock_board_industry_cons_em_df = ak.stock_board_industry_cons_em(symbol=row['板块代码'])
+            stock_board_industry_cons_em_df = stock.get_stock_board_industry_cons(symbol=row['板块代码'])
             if stock_board_industry_cons_em_df is None:
                 continue
             stock_board_industry_cons_em_df.insert(0, 'date', now_time)
             stock_board_industry_cons_em_df.insert(1, 'board_code', row['板块代码'])
             stock_board_industry_cons_em_df.insert(2, 'board_name', row['板块名称'])
+            stock_board_industry_cons_em_df.insert(3, 'board_change_rate', row['涨跌幅'])
+            stock_board_industry_cons_em_df.insert(4, 'board_total_market_cap', row['总市值'])
+            stock_board_industry_cons_em_df = stock_board_industry_cons_em_df.sort_values(by='流通市值', ascending=False).head(15)
             total_stock_df = pd.concat([total_stock_df, stock_board_industry_cons_em_df], ignore_index=True)
 
         table_name = tbs.TABLE_STOCK_BOARD_INDUSTRY['name']
@@ -77,8 +80,10 @@ def save_nph_stock_board_industry(date, before=True):
         total_stock_df = total_stock_df[~total_stock_df['code'].str.startswith('900')]
         total_stock_df = total_stock_df[~total_stock_df['code'].str.startswith('200')]
         total_stock_df = total_stock_df[total_stock_df['change_rate'].notnull()]
+        # code 需要去重
+        total_stock_df = total_stock_df.drop_duplicates(subset=['code'])
 
-        mdb.insert_db_from_df(total_stock_df, stock_cron_table_name, cols_type, False, "`date`,`board_code`,`code`")
+        mdb.insert_db_from_df(total_stock_df, stock_cron_table_name, cols_type, False, "`date`,`board_code`,`code`", "date")
     except Exception as e:
         logging.error(f"basic_data_daily_job.save_stock_spot_data处理异常：{e}")
 

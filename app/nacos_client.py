@@ -41,7 +41,7 @@ def load_config(content):
         # 加载配置文件，解析 yaml 格式，设置语言
         # 解析 json 格式的配置文件
         json_config = json.loads(content)
-        loggings.info("json_config: %s", json_config)
+        loggings.info(json_config)
 
         if json_config is None:
             return
@@ -50,11 +50,11 @@ def load_config(content):
         settings.settings.DB_USERNAME = json_config.get('DB_USERNAME', 'root')
         settings.settings.DB_PASSWORD = json_config.get('DB_PASSWORD', 'VHdm%A@kh')
         settings.settings.DB_DATABASE = json_config.get('DB_DATABASE', 'stock')
-        loggings.info("DB_HOST_NAME: %s", settings.settings.DB_HOST_NAME)
-        loggings.info("DB_PORT: %s", settings.settings.DB_PORT)
-        loggings.info("DB_USERNAME: %s", settings.settings.DB_USERNAME)
-        loggings.info("DB_PASSWORD: %s", settings.settings.DB_PASSWORD)
-        loggings.info("DB_DATABASE: %s", settings.settings.DB_DATABASE)
+        loggings.info("DB_HOST_NAME:" + settings.settings.DB_HOST_NAME)
+        loggings.info("DB_PORT:" + str(settings.settings.DB_PORT))
+        loggings.info("DB_USERNAME:" + settings.settings.DB_USERNAME)
+        loggings.info("DB_PASSWORD:"+ settings.settings.DB_PASSWORD)
+        loggings.info("DB_DATABASE:" + settings.settings.DB_DATABASE)
     except json.JSONDecodeError as e:
         loggings.error("解析 JSON 配置时出错: %s", e)
 

@@ -240,6 +240,8 @@ TABLE_STOCK_BOARD_INDUSTRY_CONS = {
         'date': {'type': DATETIME, 'cn': '日期', 'size': 0},
         'board_code': {'type': VARCHAR(8, _COLLATE), 'cn': '板块代码', 'size': 60},
         'board_name': {'type': VARCHAR(32, _COLLATE), 'cn': '板块名称', 'size': 120},
+        'board_change_rate': {'type': FLOAT, 'cn': '板块涨跌幅', 'size': 70},
+        'board_total_market_cap': {'type': FLOAT, 'cn': '板块总市值', 'size': 120},
         'code': {'type': VARCHAR(8, _COLLATE), 'cn': '代码', 'size': 60},
         'name': {'type': VARCHAR(32, _COLLATE), 'cn': '名称', 'size': 120},
         'latest_price': {'type': FLOAT, 'cn': '最新价', 'size': 70},
@@ -254,7 +256,10 @@ TABLE_STOCK_BOARD_INDUSTRY_CONS = {
         'previous_closing_price': {'type': FLOAT, 'cn': '昨收', 'size': 70},
         'turnover_rate': {'type': FLOAT, 'cn': '换手率', 'size': 70},
         'dynamic_pe_ratio': {'type': FLOAT, 'cn': '市盈率-动态', 'size': 120},
-        'pb_ratio': {'type': FLOAT, 'cn': '市净率', 'size': 120}
+        'pb_ratio': {'type': FLOAT, 'cn': '市净率', 'size': 120},
+        'volume_ratio': {'type': FLOAT, 'cn': '量比','size': 120},
+        'total_market_cap': {'type': FLOAT, 'cn': '总市值','size': 120},
+        'circulating_market_cap': {'type': FLOAT, 'cn': '流通市值','size': 120}
     },
     'header_mapping': {
         '代码': 'code',
@@ -271,7 +276,10 @@ TABLE_STOCK_BOARD_INDUSTRY_CONS = {
         '昨收': 'previous_closing_price',
         '换手率': 'turnover_rate',
         '市盈率-动态': 'dynamic_pe_ratio',
-        '市净率': 'pb_ratio'
+        '市净率': 'pb_ratio',
+        '量比': 'volume_ratio',
+        '总市值': 'total_market_cap',
+        '流通市值': 'circulating_market_cap'
     },
     'drop_fields': [
         '序号',

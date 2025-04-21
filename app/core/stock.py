@@ -1,3 +1,4 @@
+import math
 from io import StringIO
 
 import aiohttp
@@ -245,6 +246,123 @@ def process_data(page_results: list[dict[str,str]]) -> pd.DataFrame:
 
     return df
 
+def get_stock_board_industry_cons(symbol: str = "BK1027"):
+    url = "https://29.push2.eastmoney.com/api/qt/clist/get"
+    params = {
+        "pn": "1",
+        "pz": "100",
+        "po": "1",
+        "np": "1",
+        "ut": "bd1d9ddb04089700cf9c27f6f7426281",
+        "fltt": "2",
+        "invt": "2",
+        "fid": "f3",
+        "fs": f"b:{symbol} f:!50",
+        "fields": "f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f12,f13,f14,f15,f16,f17,f18,f20,f21,"
+                  "f23,f24,f25,f22,f11,f62,f128,f136,f115,f152,f45",
+    }
+    new_params = params.copy()
+    # 获取第一页数据，用于确定分页信息
+    r = requests.get(url, params=new_params, timeout=15)
+    data_json = r.json()
+    # 计算分页信息
+    per_page_num = len(data_json["data"]["diff"])
+    total_page = math.ceil(data_json["data"]["total"] / per_page_num)
+    # 存储所有页面数据
+    temp_list = []
+    # 添加第一页数据
+    temp_list.append(pd.DataFrame(data_json["data"]["diff"]))
+    # 获取剩余页面数据
+    for page in range(2, total_page + 1):
+        new_params.update({"pn": page})
+        r = requests.get(url, params=params, timeout=15)
+        data_json = r.json()
+        inner_temp_df = pd.DataFrame(data_json["data"]["diff"])
+        temp_list.append(inner_temp_df)
+    # 合并所有数据
+    temp_df = pd.concat(temp_list, ignore_index=True)
+    temp_df["f3"] = pd.to_numeric(temp_df["f3"], errors="coerce")
+    temp_df.sort_values(by=["f3"], ascending=False, inplace=True, ignore_index=True)
+    temp_df.reset_index(inplace=True)
+    temp_df["index"] = temp_df["index"].astype(int) + 1
+
+    temp_df.columns = [
+        "序号",
+        "_",
+        "最新价",
+        "涨跌幅",
+        "涨跌额",
+        "成交量",
+        "成交额",
+        "振幅",
+        "换手率",
+        "市盈率-动态",
+        "量比",
+        "_",
+        "代码",
+        "_",
+        "名称",
+        "最高",
+        "最低",
+        "今开",
+        "昨收",
+        "总市值",
+        "流通市值",
+        "_",
+        "市净率",
+        "_",
+        "今年涨幅",
+        "_",
+        "_",
+        "_",
+        "_",
+        "_",
+        "_",
+        "_",
+        "_",
+    ]
+    temp_df = temp_df[
+        [
+            "序号",
+            "代码",
+            "名称",
+            "最新价",
+            "涨跌幅",
+            "涨跌额",
+            "成交量",
+            "成交额",
+            "振幅",
+            "最高",
+            "最低",
+            "今开",
+            "昨收",
+            "换手率",
+            "市盈率-动态",
+            "市净率",
+            "量比",
+            "总市值",
+            "流通市值"
+        ]
+    ]
+
+    temp_df["最新价"] = pd.to_numeric(temp_df["最新价"], errors="coerce")
+    temp_df["涨跌幅"] = pd.to_numeric(temp_df["涨跌幅"], errors="coerce")
+    temp_df["涨跌额"] = pd.to_numeric(temp_df["涨跌额"], errors="coerce")
+    temp_df["成交量"] = pd.to_numeric(temp_df["成交量"], errors="coerce")
+    temp_df["成交额"] = pd.to_numeric(temp_df["成交额"], errors="coerce")
+    temp_df["振幅"] = pd.to_numeric(temp_df["振幅"], errors="coerce")
+    temp_df["最高"] = pd.to_numeric(temp_df["最高"], errors="coerce")
+    temp_df["最低"] = pd.to_numeric(temp_df["最低"], errors="coerce")
+    temp_df["今开"] = pd.to_numeric(temp_df["今开"], errors="coerce")
+    temp_df["昨收"] = pd.to_numeric(temp_df["昨收"], errors="coerce")
+    temp_df["换手率"] = pd.to_numeric(temp_df["换手率"], errors="coerce")
+    temp_df["市盈率-动态"] = pd.to_numeric(temp_df["市盈率-动态"], errors="coerce")
+    temp_df["市净率"] = pd.to_numeric(temp_df["市净率"], errors="coerce")
+    temp_df["量比"] = pd.to_numeric(temp_df["量比"], errors="coerce")
+    temp_df["总市值"] = pd.to_numeric(temp_df["总市值"], errors="coerce")
+    temp_df["流通市值"] = pd.to_numeric(temp_df["流通市值"], errors="coerce")
+
+    return temp_df
 
 
 if __name__ == '__main__':

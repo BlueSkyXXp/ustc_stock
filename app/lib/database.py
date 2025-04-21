@@ -13,9 +13,9 @@ __author__ = 'bytedance'
 __date__ = '2025/3/31 '
 
 # 从环境变量获取数据库配置，使用 settings.py 里对应的环境变量名
-db_host = os.getenv("DB_HOST_NAME", "172.25.0.3")
+db_host = os.getenv("DB_HOST_NAME", "10.199.193.253")
 db_user = os.getenv("DB_USERNAME", "root")
-db_password = quote_plus(os.getenv("DB_PASSWORD", "qwer1234!"))
+db_password = os.getenv("DB_PASSWORD", "MyS3ssw0rd")
 db_database = os.getenv("DB_NAME", "stock")
 db_port = int(os.getenv("DB_PORT", 3306))
 db_charset = os.getenv("DB_CHARSET", "utf8mb4")

@@ -24,7 +24,7 @@ class Settings:
     SERVICE_PORT = int(os.getenv("SERVICE_PORT", 8001))
     SERVICE_IP = os.getenv("SERVICE_IP", get_local_ip())
     SERVICE_NAME = os.getenv("SERVICE_NAME", "stock-service")
-    NACOS_SERVER_ADDRESS = os.getenv("NACOS_SERVER_ADDRESS", "172.25.0.4:8848")
+    NACOS_SERVER_ADDRESS = os.getenv("NACOS_SERVER_ADDRESS", "10.37.43.33:8848")
     NACOS_NAMESPACE = os.getenv("NACOS_NAMESPACE", "public")
     NACOS_DATA_ID = os.getenv("NACOS_DATA_ID", "stock-service")
     NACOS_USERNAME = os.getenv("NACOS_USERNAME", "nacos")

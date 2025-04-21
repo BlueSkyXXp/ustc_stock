@@ -6,6 +6,13 @@ import app.core.stock as stock
 
 
 if __name__ == "__main__":
+
+    bb = ak.stock_board_industry_cons_em(symbol="小金属")
+    print(bb)
+
+    cc = stock.get_stock_board_industry_cons(symbol="BK1027")
+    print(cc)
+
     sz_index_df = ak.index_zh_a_hist(symbol="899050", period="daily", start_date="20250418", end_date="20250418")
 
     print(sz_index_df)
