@@ -1,11 +1,38 @@
-from datetime import datetime
+import datetime
 
 import akshare as ak
 import pandas as pd
 import app.core.stock as stock
+import app.lib.trade_time as trd
+
+OPEN_TIME = (
+    (datetime.time(17, 10, 0), datetime.time(17, 12, 0)),
+)
+
+
+def is_fetch_time(now_time):
+    # 将字符串转换为 datetime.time 类型
+    time_obj = datetime.datetime.strptime(now_time, "%Y-%m-%d %H:%M").time()
+
+    for begin, end in OPEN_TIME:
+        if begin <= time_obj <= end:
+            return True
+    return False
 
 
 if __name__ == "__main__":
+    now_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    flag = is_fetch_time(now_time)
+    print(flag)
+
+    run_date, run_date_nph = trd.get_trade_date_last()
+    print(run_date)
+    print(run_date_nph)
+    stock_board_concept_name_em_df = ak.stock_board_concept_name_em()
+
+    stock_board_concept_cons_em_df = stock.get_stock_board_concept_cons_em(symbol="BK1145")
+    print(stock_board_concept_cons_em_df)
 
     bb = ak.stock_board_industry_cons_em(symbol="小金属")
     print(bb)

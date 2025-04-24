@@ -49,7 +49,13 @@ OPEN_TIME = (
 )
 
 def is_fetch_time(now_time):
-    now = now_time.time()
+    # now_time是 datetime.datetime.now().strftime("%Y-%m-%d %H:%M")  ，
+    # 我需要通过now_time获取时分， 格式datetime.time, 秒设置为0
+    now = datetime.datetime.strptime(now_time, "%Y-%m-%d %H:%M").time()
+
+
+
+    
     for begin, end in OPEN_TIME:
         if begin <= now <= end:
             return True

@@ -51,7 +51,7 @@ async def startup_event():
     # 启动定时任务
     scheduler = BackgroundScheduler()
     scheduler.add_job(run_job, 'cron', minute='0,30', hour='9,10,11,13,14,15', day_of_week='mon-fri', args=[settings.Settings.SCHEDULE_HOUR_JOB])
-    scheduler.add_job(run_job, 'cron', hour='16', day_of_week='mon-fri', args=[settings.Settings.SCHEDULE_NIGHT_JOB])
+    # scheduler.add_job(run_job, 'cron', hour='23', day_of_week='mon-fri', args=[settings.Settings.SCHEDULE_NIGHT_JOB])
     scheduler.add_job(run_job, 'cron', hour='16', day_of_week='mon-fri', args=[settings.Settings.SCHEDULE_AFTER_CLOSE_FOUR_JOB])
     scheduler.add_job(run_job, 'cron', minute='0,30', hour='9,10,11,13,14,15', day_of_week='mon-fri', args=[settings.Settings.SCHEDULE_MINUTE_JOB])
 

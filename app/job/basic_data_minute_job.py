@@ -30,6 +30,7 @@ def save_nph_stock_board_industry(date, before=True):
         return
 
     now_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    
     if not trd.is_fetch_time(now_time):
         return
     try:

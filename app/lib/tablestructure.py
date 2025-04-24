@@ -360,6 +360,54 @@ TABLE_MARKET_CROWDING = {
     'drop_fields': []
 }
 
+# ['排名', '板块名称', '板块代码', '最新价', '涨跌额', '涨跌幅', '总市值', '换手率', '上涨家数', '下跌家数', '领涨股票', '领涨股票-涨跌幅']
+TABLE_STOCK_BOARD_CONCEPT_SPOT = {
+    'name':'stock_board_concept_spot',
+    'cn': '板块概念数据',
+    'columns': {
+        'date': {'type': DATE, 'cn': '日期','size': 0},
+        'board_code': {'type': VARCHAR(8, _COLLATE), 'cn': '板块代码','size': 60},
+        'board_name': {'type': VARCHAR(32, _COLLATE), 'cn': '板块名称','size': 120},
+        'latest_price': {'type': FLOAT, 'cn': '最新价','size': 70},
+        'change_amount': {'type': FLOAT, 'cn': '涨跌额','size': 70},
+        'change_rate': {'type': FLOAT, 'cn': '涨跌幅','size': 70},
+        'total_market_cap': {'type': FLOAT, 'cn': '总市值','size': 120},
+        'turnover_rate': {'type': FLOAT, 'cn': '换手率','size': 70},
+        'rise_stock': {'type': VARCHAR(32, _COLLATE), 'cn': '领涨股票','size': 120},
+        'rise_stock_change_rate': {'type': FLOAT, 'cn': '领涨股票-涨跌幅','size': 70}
+    },
+    'header_mapping': {
+        '板块名称': 'board_name',
+        '板块代码': 'board_code',
+        '最新价': 'latest_price',
+        '涨跌额': 'change_amount',
+        '涨跌幅': 'change_rate',
+        '总市值': 'total_market_cap',
+        '换手率': 'turnover_rate',  
+        '领涨股票': 'rise_stock',
+        '领涨股票-涨跌幅': 'rise_stock_change_rate'
+    },
+    'drop_fields': []
+}
+
+
+
+    # board_concept_code    board_concept_name
+TABLE_STOCK_BOARD_CONCEPT_SPOT_CONS = {
+    'name':'stock_board_concept_spot_cons',
+    'cn': '板块概念数据',
+    'columns': {
+        'board_concept_code': {'type': VARCHAR(8, _COLLATE), 'cn': '板块代码','size': 60},
+        'board_concept_name': {'type': VARCHAR(32, _COLLATE), 'cn': '板块名称','size': 120}
+    },
+    'header_mapping': {
+        '板块名称': 'board_concept_name',
+        '板块代码': 'board_concept_code'
+    },
+    'drop_fields': []
+}
+
+
 
 def get_field_cn(key, table):
     f = table.get('columns').get(key)

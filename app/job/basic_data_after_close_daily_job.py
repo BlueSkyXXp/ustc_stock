@@ -96,7 +96,7 @@ def save_after_close_stock_index_daily_hist(date):
             cols_type = tbs.get_field_types(tbs.TABLE_STOCK_INDEX_DAILY_HIST['columns'])
         mdb.insert_db_from_df(index_zh_a_hist_df, table_name, cols_type, False, "`date`,`code`")
     except Exception as e:
-        logging.error(f"basic_data_other_daily_job.save_stock_index_daily_hist处理异常：{e}")
+        logging.error(f"basic_data_other_daily_job.save_stock_index_daily_hist处理异常:{e}")
 
 
 def main():
