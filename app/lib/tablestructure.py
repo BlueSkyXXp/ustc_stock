@@ -365,14 +365,16 @@ TABLE_STOCK_BOARD_CONCEPT_SPOT = {
     'name':'stock_board_concept_spot',
     'cn': '板块概念数据',
     'columns': {
-        'date': {'type': DATE, 'cn': '日期','size': 0},
-        'board_code': {'type': VARCHAR(8, _COLLATE), 'cn': '板块代码','size': 60},
-        'board_name': {'type': VARCHAR(32, _COLLATE), 'cn': '板块名称','size': 120},
+        'board_code': {'type': VARCHAR(8, _COLLATE), 'cn': '板块代码', 'size': 60},
+        # 修改为正确的 SQLAlchemy 类型实例
+        'board_name': {'type': VARCHAR(32, _COLLATE), 'cn': '板块名称', 'size': 120},
         'latest_price': {'type': FLOAT, 'cn': '最新价','size': 70},
         'change_amount': {'type': FLOAT, 'cn': '涨跌额','size': 70},
         'change_rate': {'type': FLOAT, 'cn': '涨跌幅','size': 70},
         'total_market_cap': {'type': FLOAT, 'cn': '总市值','size': 120},
         'turnover_rate': {'type': FLOAT, 'cn': '换手率','size': 70},
+        'rise_stock_count': {'type': BIGINT, 'cn': '上涨家数','size': 100},
+        'fall_stock_count': {'type': BIGINT, 'cn': '下跌家数','size': 100},
         'rise_stock': {'type': VARCHAR(32, _COLLATE), 'cn': '领涨股票','size': 120},
         'rise_stock_change_rate': {'type': FLOAT, 'cn': '领涨股票-涨跌幅','size': 70}
     },
@@ -384,10 +386,14 @@ TABLE_STOCK_BOARD_CONCEPT_SPOT = {
         '涨跌幅': 'change_rate',
         '总市值': 'total_market_cap',
         '换手率': 'turnover_rate',  
+        '上涨家数': 'rise_stock_count',
+        '下跌家数': 'fall_stock_count',
         '领涨股票': 'rise_stock',
         '领涨股票-涨跌幅': 'rise_stock_change_rate'
     },
-    'drop_fields': []
+    'drop_fields': [
+        '排名',
+    ]
 }
 
 
@@ -395,14 +401,19 @@ TABLE_STOCK_BOARD_CONCEPT_SPOT = {
     # board_concept_code    board_concept_name
 TABLE_STOCK_BOARD_CONCEPT_SPOT_CONS = {
     'name':'stock_board_concept_spot_cons',
-    'cn': '板块概念数据',
+    'cn': '概念板块成成份股',
     'columns': {
+        'combine_code': {'type': VARCHAR(32, _COLLATE), 'cn': '代码-概念板块代码','size': 60},
+        'code': {'type': VARCHAR(8, _COLLATE), 'cn': '代码','size': 60},
         'board_concept_code': {'type': VARCHAR(8, _COLLATE), 'cn': '板块代码','size': 60},
-        'board_concept_name': {'type': VARCHAR(32, _COLLATE), 'cn': '板块名称','size': 120}
+        'board_concept_name': {'type': VARCHAR(32, _COLLATE), 'cn': '板块名称','size': 120},
+        'name': {'type': VARCHAR(32, _COLLATE), 'cn': '名称','size': 120},
     },
     'header_mapping': {
         '板块名称': 'board_concept_name',
-        '板块代码': 'board_concept_code'
+        '板块代码': 'board_concept_code',
+        '代码': 'code',
+        '名称': 'name',
     },
     'drop_fields': []
 }

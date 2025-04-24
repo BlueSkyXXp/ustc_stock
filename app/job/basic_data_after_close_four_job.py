@@ -66,10 +66,9 @@ def save_after_close_ashares_congestion(date):
     except Exception as e:
         logging.error(f"basic_data_other_daily_job.save_stock_index_daily_hist处理异常:{e}")
 
-def save_nph_stock_a_spot(date, before=True):
+def save_after_close_stock_a_spot(date, before=True):
     if before:
         return
-    # 涨停池股票列表
     try:
         data = ak.stock_zh_a_spot_em()
         if data is None:
@@ -99,7 +98,7 @@ def save_nph_stock_a_spot(date, before=True):
 
 def main():
     runt.run_with_args(save_after_close_ashares_congestion)
-    runt.run_with_args(save_nph_stock_a_spot)
+    runt.run_with_args(save_after_close_stock_a_spot)
 
 
 # main函数入口
